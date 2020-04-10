@@ -1,0 +1,34 @@
+.onepage {
+  height: 100vh;
+  overflow: hidden;
+
+  &-content {
+    transition: all 1s ease;
+  }
+
+  &-guide {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+
+    &-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: #fff;
+      border-radius: 50%;
+      cursor: pointer;
+
+      & + .onepage-guide-dot {
+        margin-top: 8px;
+      }
+
+      &.onepage-guide-dot-current {
+        background-color: #000;
+      }
+    }
+  }
+}

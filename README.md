@@ -29,7 +29,7 @@ const App = () => (
 render(<App />, document.getElementById('root'));
 ```
 
-## APi
+## API
 
 | 属性            | 说明                 | 类型     | 默认值 |
 | --------------- | -------------------- | -------- | ------ |

@@ -2,6 +2,8 @@ import React, { Component, RefObject } from 'react';
 import './style/index.less';
 
 interface OnePageProps {
+  className?: string;
+  style?: React.CSSProperties;
   children?: React.ReactNode;
 }
 
@@ -80,10 +82,14 @@ export class OnePage extends Component<OnePageProps, OnePageState> {
   }
 
   render() {
-    const { children } = this.props;
+    const { className, style, children } = this.props;
     const { index } = this.state;
+
+    let onepageClassName = 'onepage';
+    if (className) onepageClassName += ` ${className}`;
+
     return (
-      <div className="onepage">
+      <div className={onepageClassName} style={style}>
         <div
           ref={this.contentRef}
           className="onepage-content"

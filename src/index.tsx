@@ -1,5 +1,6 @@
 import React, { Component, RefObject } from 'react';
 import './style/index.less';
+import throttle from 'lodash.throttle';
 
 interface OnePageProps {
   className?: string;
@@ -9,7 +10,6 @@ interface OnePageProps {
 
 interface OnePageState {
   index: number; // 当前显示页索引
-  canScroll: boolean; // 是否允许滚动
 }
 
 export class OnePage extends Component<OnePageProps, OnePageState> {
@@ -20,38 +20,31 @@ export class OnePage extends Component<OnePageProps, OnePageState> {
 
     this.state = {
       index: 0,
-      canScroll: true,
     };
   }
 
   prev = (): void => {
-    const { index, canScroll } = this.state;
-    // 判断是否允许滚动
-    if (!canScroll) return;
+    const { index } = this.state;
     // 判断当前index
     if (index < 1) return;
-    this.setState({ index: index - 1, canScroll: false });
+    this.setState({ index: index - 1 });
   };
 
   next = (): void => {
-    const { index, canScroll } = this.state;
-    // 判断是否允许滚动
-    if (!canScroll) return;
+    const { index } = this.state;
     const { children } = this.props;
     const count = React.Children.count(children);
     // 判断当前index
     if (index >= count - 1) return;
-    this.setState({ index: index + 1, canScroll: false });
+    this.setState({ index: index + 1 });
   };
 
   go = (index: number): void => {
-    const { canScroll } = this.state;
-    // 判断是否允许滚动
-    if (!canScroll) return;
-    this.setState({ index, canScroll: false });
+    this.setState({ index });
   };
 
-  handleScroll = (e: WheelEvent): void => {
+  handleScroll = (e: WheelEvent) => {
+    e.preventDefault();
     if (e.deltaY > 0) {
       this.next();
     } else {
@@ -61,24 +54,15 @@ export class OnePage extends Component<OnePageProps, OnePageState> {
 
   componentDidMount() {
     // 挂载滚轮事件
-    window.addEventListener('wheel', this.handleScroll);
-    // 滚动节流
-    const node = this.contentRef.current;
-    if (node) {
-      node.addEventListener('transitionend', () => {
-        this.setState({ canScroll: true });
-      });
-    }
+    window.addEventListener(
+      'wheel',
+      throttle(this.handleScroll, 1500, { leading: true, trailing: false }),
+      { passive: false }
+    );
   }
 
   componentWillUnmount() {
     window.removeEventListener('wheel', this.handleScroll);
-    const node = this.contentRef.current;
-    if (node) {
-      node.removeEventListener('transitionend', () => {
-        this.setState({ canScroll: true });
-      });
-    }
   }
 
   render() {

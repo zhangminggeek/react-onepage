@@ -6,6 +6,10 @@ interface OnePageProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  speed?: number; // 滚动速度(ms)
+  animation?: string; // 动画效果
+  delay?: number; // 延迟(ms)
+  onTransitionEnd?: Function; // 动画结束回调
 }
 
 interface OnePageState {
@@ -13,6 +17,12 @@ interface OnePageState {
 }
 
 export class OnePage extends Component<OnePageProps, OnePageState> {
+  static defaultProps = {
+    speed: 1500,
+    animation: 'ease',
+    delay: 0,
+  };
+
   private contentRef: RefObject<HTMLDivElement> = React.createRef();
 
   constructor(props: OnePageProps) {
@@ -43,30 +53,44 @@ export class OnePage extends Component<OnePageProps, OnePageState> {
     this.setState({ index });
   };
 
-  handleScroll = (e: WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) {
-      this.next();
-    } else {
-      this.prev();
-    }
+  handleScroll = throttle(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        this.next();
+      } else {
+        this.prev();
+      }
+    },
+    this.props.speed,
+    { leading: true, trailing: false }
+  );
+
+  handleTransitionEnd = (e: TransitionEvent) => {
+    const { onTransitionEnd } = this.props;
+    onTransitionEnd && onTransitionEnd(e);
   };
 
   componentDidMount() {
     // 挂载滚轮事件
-    window.addEventListener(
-      'wheel',
-      throttle(this.handleScroll, 1500, { leading: true, trailing: false }),
-      { passive: false }
-    );
+    window.addEventListener('wheel', this.handleScroll, { passive: false });
+    // 滚动动画结束回调
+    const { onTransitionEnd } = this.props;
+    if (onTransitionEnd) {
+      window.addEventListener('transitionend', this.handleTransitionEnd);
+    }
   }
 
   componentWillUnmount() {
     window.removeEventListener('wheel', this.handleScroll);
+    const { onTransitionEnd } = this.props;
+    if (onTransitionEnd) {
+      window.removeEventListener('transitionend', this.handleTransitionEnd);
+    }
   }
 
   render() {
-    const { className, style, children } = this.props;
+    const { className, style, children, speed, animation, delay } = this.props;
     const { index } = this.state;
 
     let onepageClassName = 'onepage';
@@ -77,7 +101,12 @@ export class OnePage extends Component<OnePageProps, OnePageState> {
         <div
           ref={this.contentRef}
           className="onepage-content"
-          style={{ transform: `translateY(-${index * 100}vh)` }}
+          style={{
+            transform: `translateY(-${index * 100}vh)`,
+            transition: `all ${(speed as number) / 1000}s ${animation} ${
+              (delay as number) / 1000
+            }s`,
+          }}
         >
           {children}
         </div>
